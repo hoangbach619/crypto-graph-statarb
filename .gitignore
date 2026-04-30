@@ -53,3 +53,4 @@ Thumbs.db
 # Keep figures and tables in results so README renders them
 !results/figures/
 !results/tables/
+*.code-workspace
