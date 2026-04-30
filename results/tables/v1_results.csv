@@ -1,0 +1,2 @@
+strategy,ann_return_net,sharpe_net,sortino_net,max_drawdown,calmar,win_rate_daily,profit_factor,t_stat_daily,n_days,ann_return_gross,sharpe_gross,mean_ic,ic_std,icir,ic_t,n_obs,topbot_spread,topbot_t
+v1_pairs,-0.33034733825402707,-1.0266647896937855,-1.0465029662052214,-0.8474325011062566,-0.389821416835895,0.3466160657811512,0.8158335312740527,-2.136722732775743,1581,-0.27935848462500334,-0.821230886586287,,,,,0,,
