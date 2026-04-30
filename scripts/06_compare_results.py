@@ -67,7 +67,8 @@ def main():
     summary.to_csv(TBL_DIR / "comparison.csv", index=False)
     print("\n=== HEADLINE COMPARISON ===")
     cols = ["strategy", "ann_return_net", "sharpe_net", "max_drawdown",
-            "calmar", "mean_ic", "ic_t", "topbot_spread", "topbot_t", "n_days"]
+            "calmar", "mean_ic", "ic_t_naive", "ic_t_newey_west",
+            "topbot_spread", "topbot_t", "n_days"]
     cols = [c for c in cols if c in summary.columns]
     print(summary[cols].to_string(index=False, float_format=lambda x: f"{x:.4f}"))
 

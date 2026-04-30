@@ -18,11 +18,11 @@ out-of-sample window so the comparison is apples-to-apples.
 OOS window: 2022-01-01 → 2026-04-30 (1,581 trading days, 222 weekly rebalances).
 Net of 4 bps round-trip taker fees + 2 bps per-leg slippage + funding pass-through.
 
-| Strategy | Ann. return | Sharpe | Max DD | Calmar | Mean rank IC | IC t-stat | Top-bot t-stat |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| v1 Engle-Granger pairs   | -33.0% | -1.03 | -84.7% | -0.39 |  n/a   |  n/a  |  n/a |
-| v2 graph-ML              | +17.1% | +1.25 |  -8.8% |  1.93 | 0.177 | 10.79 |  9.56 |
-| v3 graph-ML + alt-data   | +21.8% | +1.58 | -10.0% |  2.17 | 0.180 | 11.00 |  9.98 |
+| Strategy | Ann. return | Sharpe | Max DD | Calmar | Mean rank IC | IC t-stat (naive) | IC t-stat (NW, lag 3) | Top-bot t-stat |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| v1 Engle-Granger pairs   | -33.0% | -1.03 | -84.7% | -0.39 |  n/a   |  n/a  |  n/a  |  n/a |
+| v2 graph-ML              |  +2.9% | +0.28 | -21.3% |  0.13 | 0.136 |  8.36 |  5.95 |  7.36 |
+| v3 graph-ML + alt-data   |  +3.6% | +0.34 | -24.2% |  0.15 | 0.136 |  8.46 |  6.00 |  7.60 |
 
 Full numbers in [`results/tables/comparison.csv`](results/tables/comparison.csv).
 
@@ -74,6 +74,10 @@ and go long the top 20 / short the bottom 20 (capped at half the universe).
 
 Diagnostics tracked: per-rebalance Spearman rank IC, top-bottom quintile
 spread, RF feature importances.
+
+IC observations overlap by 14 days because the 21-day forward target is
+sampled weekly. We report both the naive t-statistic and a Newey-West
+adjusted t-statistic with 3 lags to account for serial dependence.
 
 ### v3 — Adding alternative data
 
@@ -139,6 +143,11 @@ All RNGs are seeded `42`; `n_jobs=1` everywhere.
 
 ## Caveats observed during this run
 
+- **Training-set forward-return leak (fixed).** Initial implementation
+  included training rows whose 21-day forward returns extended past the
+  prediction date `asof`. This was identified during code review and
+  fixed by requiring `train_date + 21d <= asof`. Numbers reported here
+  use the fixed training filter.
 - **Open-interest history is unavailable beyond ~30 days.** The Binance
   endpoint `/futures/data/openInterestHist` returned 400 for any window
   older than ~30 days from request time, and OI features (`oi_change_5d`,

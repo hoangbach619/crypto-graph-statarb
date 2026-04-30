@@ -142,7 +142,8 @@ def fit_predict_at(panel: pd.DataFrame, asof: pd.Timestamp,
     """
     if feature_cols is None:
         feature_cols = FEATURE_COLS_V2
-    train = panel[panel["date"] < asof].dropna(subset=feature_cols + ["fwd_rank"])
+    cutoff = asof - pd.Timedelta(days=FORWARD_HORIZON_DAYS)
+    train = panel[panel["date"] <= cutoff].dropna(subset=feature_cols + ["fwd_rank"])
     test = panel[panel["date"] == asof].dropna(subset=feature_cols)
 
     if len(train) < 50 or test.empty:

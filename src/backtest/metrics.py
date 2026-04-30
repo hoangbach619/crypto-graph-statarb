@@ -77,6 +77,27 @@ def t_statistic(r: pd.Series) -> float:
     return float(mean / (sd / np.sqrt(len(r))))
 
 
+def newey_west_t(series, lag):
+    """HAC t-stat with Newey-West correction for `lag` periods of autocorrelation."""
+    import numpy as np
+    s = series.dropna().values
+    n = len(s)
+    if n < lag + 2:
+        return np.nan
+    mean = s.mean()
+    e = s - mean
+    gamma_0 = (e**2).sum() / n
+    var_nw = gamma_0
+    for k in range(1, lag + 1):
+        w = 1 - k / (lag + 1)
+        gamma_k = (e[k:] * e[:-k]).sum() / n
+        var_nw += 2 * w * gamma_k
+    if var_nw <= 0:
+        return np.nan
+    se_nw = np.sqrt(var_nw / n)
+    return mean / se_nw
+
+
 def rank_ic_summary(diag: pd.DataFrame) -> dict:
     if diag is None or diag.empty or "rank_ic" not in diag.columns:
         return {"mean_ic": float("nan"), "ic_std": float("nan"),
@@ -121,6 +142,13 @@ def summary_metrics(name: str, r: pd.Series, gross: pd.Series | None = None,
         out["sharpe_gross"] = sharpe_ratio(gross)
     ics = rank_ic_summary(diag if diag is not None else pd.DataFrame())
     out.update(ics)
+    if diag is not None and not diag.empty and "rank_ic" in diag.columns:
+        # 21-day forward return / 7-day rebalance = 3 weeks of overlap, use lag=3
+        ic_t_nw = newey_west_t(diag["rank_ic"], lag=3)
+    else:
+        ic_t_nw = float("nan")
+    out["ic_t_naive"] = out.get("ic_t", float("nan"))
+    out["ic_t_newey_west"] = ic_t_nw
     tb = top_bottom_spread(diag if diag is not None else pd.DataFrame())
     out["topbot_spread"] = tb["mean_spread"]
     out["topbot_t"] = tb["t_stat"]
